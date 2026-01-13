@@ -5,7 +5,7 @@ from typing_extensions import Annotated
 
 from flask import Flask, jsonify, send_file
 import typer
-from rich import print, style
+from rich import print
 
 typer_app = typer.Typer(
     help="Charge state distribute file server.", no_args_is_help=True
@@ -45,13 +45,14 @@ def main(
     csd_directory: Annotated[Path, typer.Argument(help="Directory to serve")],
     port: Annotated[int, typer.Option(help="Port to use")] = 5000,
 ):
+    directory = csd_directory.resolve()
     if not csd_directory.exists():
-        print(f"[red]Directory {csd_directory.absolute()} does not exist[/red]")
+        print(f"[red]Directory {directory} does not exist[/red]")
         raise typer.Abort()
-    print(f"Serving files from {csd_directory.absolute()}")
+    print(f"Serving files from {directory}")
     files = list_files(csd_directory)
     print(f"Serving [bold]{len(files)}[/bold] CSD files")
-    state.directory = csd_directory.absolute()
+    state.directory = directory
     app.run("0.0.0.0", port)
 
 
