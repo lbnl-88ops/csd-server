@@ -12,6 +12,15 @@ dependencies = [
     "typer (>=0.21.1,<0.22.0)",
 ]
 
+[tool.poetry]
+packages = [
+	{ include = "csd_server", from = "src"}
+]
+
+
+[tool.poetry.scripts]
+csd-server = "csd_server.cli:typer_app"
+
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
