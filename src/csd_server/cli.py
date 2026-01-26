@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from typing import List
 from typing_extensions import Annotated
@@ -7,10 +8,8 @@ from flask import Flask, jsonify, send_file
 import typer
 from rich import print
 
-typer_app = typer.Typer(
-    help="Charge state distribute file server.", no_args_is_help=True
-)
-app = Flask(__name__)
+
+CSD_DIRECTORY = os.getenv("CSD_DIRECTORY")
 
 
 @dataclass(init=False)
@@ -26,35 +25,35 @@ def list_files(directory: Path) -> List[Path]:
     return files
 
 
-@app.route("/files", methods=["GET"])
-def files():
-    return jsonify([str(f) for f in list_files(state.directory)])
+def create_app():
+    if CSD_DIRECTORY is None:
+        raise RuntimeError()
+    app = Flask(__name__)
 
+    @app.route("/files", methods=["GET"])
+    def files():
+        return jsonify([str(f) for f in list_files(state.directory)])
 
-@app.route("/download/<filename>", methods=["GET"])
-def download_file(filename):
-    file_path = state.directory / filename
-    if file_path.exists():
-        return send_file(file_path, as_attachment=True)
-    else:
-        return jsonify({"error": "File not found"}), 404
+    @app.route("/download/<filename>", methods=["GET"])
+    def download_file(filename):
+        file_path = state.directory / filename
+        if file_path.exists():
+            return send_file(file_path, as_attachment=True)
+        else:
+            return jsonify({"error": "File not found"}), 404
 
-
-@typer_app.command()
-def main(
-    csd_directory: Annotated[Path, typer.Argument(help="Directory to serve")],
-    port: Annotated[int, typer.Option(help="Port to use")] = 5000,
-):
+    csd_directory = Path(CSD_DIRECTORY)
     directory = csd_directory.resolve()
     if not csd_directory.exists():
         print(f"[red]Directory {directory} does not exist[/red]")
         raise typer.Abort()
     print(f"Serving files from {directory}")
-    files = list_files(csd_directory)
-    print(f"Serving [bold]{len(files)}[/bold] CSD files")
+    found_files = list_files(csd_directory)
+    print(f"Serving [bold]{len(found_files)}[/bold] CSD files")
     state.directory = directory
-    app.run("0.0.0.0", port)
+    return app
 
 
 if __name__ == "__main__":
-    typer_app()
+    app = create_app()
+    app.run()
