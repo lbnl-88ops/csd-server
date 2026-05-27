@@ -166,6 +166,17 @@ class ServerDatabaseManager:
                 return False
             user_id = user_row[0]
 
+            # Overwrite logic: Remove existing evaluation for this user/CSD if it exists
+            cursor.execute(
+                "SELECT id FROM evaluations WHERE operator_id = ? AND csd_timestamp = ?",
+                (user_id, csd_timestamp)
+            )
+            old_eval = cursor.fetchone()
+            if old_eval:
+                old_eval_id = old_eval[0]
+                cursor.execute("DELETE FROM evaluation_isotopes WHERE evaluation_id = ?", (old_eval_id,))
+                cursor.execute("DELETE FROM evaluations WHERE id = ?", (old_eval_id,))
+
             cursor.execute(
                 "INSERT INTO evaluations (operator_id, csd_timestamp) VALUES (?, ?)",
                 (user_id, csd_timestamp)
