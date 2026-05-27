@@ -1,2 +1,3 @@
 CSD_DIRECTORY=/data/csds/
 EMITTANCE_DIRECTORY=/data/emittance/
+CSD_DB_PATH=/var/lib/csd-server/evaluations.db
