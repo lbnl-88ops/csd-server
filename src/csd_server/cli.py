@@ -81,6 +81,10 @@ def create_app():
         timestamp = state.db.get_random_pending_timestamp(username)
         return jsonify({"csd_timestamp": timestamp})
 
+    @app.route("/db/leaderboard", methods=["GET"])
+    def get_leaderboard():
+        return jsonify(state.db.get_leaderboard())
+
     @app.route("/db/evaluations/save", methods=["POST"])
     def save_evaluation():
         data = request.json

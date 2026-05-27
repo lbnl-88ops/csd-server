@@ -140,6 +140,22 @@ class ServerDatabaseManager:
         finally:
             conn.close()
 
+    def get_leaderboard(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT u.username, COUNT(DISTINCT e.csd_timestamp) as count
+                FROM users u
+                JOIN evaluations e ON u.id = e.operator_id
+                GROUP BY u.username
+                ORDER BY count DESC
+                LIMIT 3
+            """)
+            return cursor.fetchall()
+        finally:
+            conn.close()
+
     def save_evaluation(self, username, csd_timestamp, isotopes):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
