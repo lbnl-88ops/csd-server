@@ -93,6 +93,17 @@ def create_app():
         )
         return jsonify({"success": success})
 
+    @app.route("/db/evaluations/all", methods=["GET"])
+    def get_all_evaluations_for_csd():
+        csd_timestamp = request.args.get("csd_timestamp")
+        if not csd_timestamp:
+            return jsonify({"error": "Missing csd_timestamp parameter"}), 400
+        return jsonify(state.db.get_all_evaluations_for_csd(csd_timestamp))
+
+    @app.route("/db/evaluations/summary", methods=["GET"])
+    def get_evaluations_summary():
+        return jsonify(state.db.get_evaluations_summary())
+
     csd_directory = Path(CSD_DIRECTORY).resolve()
     emittance_directory = Path(EMITTANCE_DIRECTORY).resolve()
 

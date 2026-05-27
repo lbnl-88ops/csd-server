@@ -196,3 +196,65 @@ class ServerDatabaseManager:
             return False
         finally:
             conn.close()
+
+    def get_all_evaluations_for_csd(self, csd_timestamp):
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        try:
+            # Retrieve evaluations and their operators
+            cursor.execute("""
+                SELECT e.id, u.username
+                FROM evaluations e
+                JOIN users u ON e.operator_id = u.id
+                WHERE e.csd_timestamp = ?
+            """, (csd_timestamp,))
+            eval_rows = cursor.fetchall()
+
+            results = []
+            for eval_row in eval_rows:
+                # Retrieve isotopes for each evaluation
+                cursor.execute("""
+                    SELECT symbol, status, s, m, z
+                    FROM evaluation_isotopes
+                    WHERE evaluation_id = ?
+                """, (eval_row['id'],))
+                
+                # Format exactly as expected by the client: (symbol, status, s, m, z)
+                isotopes = [
+                    (row['symbol'], row['status'], row['s'], row['m'], row['z']) 
+                    for row in cursor.fetchall()
+                ]
+                
+                results.append({
+                    'operator': eval_row['username'],
+                    'isotopes': isotopes
+                })
+                
+            return results
+        finally:
+            conn.close()
+
+    def get_evaluations_summary(self):
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        try:
+            # Aggregate evaluations per CSD
+            cursor.execute("""
+                SELECT csd_timestamp, COUNT(id) as eval_count
+                FROM evaluations
+                GROUP BY csd_timestamp
+                HAVING eval_count >= 1
+                ORDER BY csd_timestamp DESC
+            """)
+            rows = cursor.fetchall()
+            
+            summary = [
+                {'csd_timestamp': row['csd_timestamp'], 'eval_count': row['eval_count']} 
+                for row in rows
+            ]
+            
+            return summary
+        finally:
+            conn.close()
