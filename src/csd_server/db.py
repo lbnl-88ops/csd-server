@@ -11,6 +11,14 @@ class ServerDatabaseManager:
         self._initialize_db()
 
     def _initialize_db(self):
+        # Ensure the parent directory exists
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            try:
+                os.makedirs(db_dir, exist_ok=True)
+            except Exception as e:
+                print(f"Warning: Could not create database directory {db_dir}: {e}")
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
