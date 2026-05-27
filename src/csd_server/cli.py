@@ -38,7 +38,8 @@ def create_app():
     @app.route("/emittance_files", methods=["GET"])
     def emittance_files():
         return jsonify(
-            [str(f) for f in list_files(state.emittance_directory, "emittance_scan_*")]
+            [str(f) for f in list_files(
+                state.emittance_directory, "emittance_scan_*")]
         )
 
     @app.route("/download/<filename>", methods=["GET"])
@@ -60,7 +61,8 @@ def create_app():
     print(f"Serving files from {csd_directory}, {emittance_directory}")
     print(f"Serving [bold]{len(list_files(csd_directory))}[/bold] CSD files")
     print(
-        f"Serving [bold]{len(list_files(csd_directory, 'emittance_scan_*'))}[/bold] CSD files"
+        f"Serving [bold]{len(list_files(
+            emittance_directory, 'emittance_scan_*'))}[/bold] emittance scan files"
     )
     state.csd_directory = csd_directory
     state.emittance_directory = emittance_directory
